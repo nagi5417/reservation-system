@@ -1,0 +1,33 @@
+services:
+  # PostgreSQLデータベース
+  postgres:
+    image: postgres:16-alpine
+    container_name: reservation-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: reservation_db
+      POSTGRES_USER: reservation_user
+      POSTGRES_PASSWORD: reservation_pass
+      TZ: Asia/Tokyo
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - reservation-network
+
+  # MailHog (メールテスト用)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: reservation-mailhog
+    ports:
+      - "1025:1025"  # SMTPポート
+      - "8025:8025"  # Web UIポート
+    networks:
+      - reservation-network
+
+volumes:
+  postgres-data:
+
+networks:
+  reservation-network:
+    driver: bridge

@@ -1,0 +1,95 @@
+# =========================
+# Backend (Spring Boot / Gradle)
+# =========================
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# Package files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Application properties with secrets
+# application-local.yml
+# application-prod.yml
+
+# =========================
+# Frontend (React / Node.js)
+# =========================
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Cache
+.cache/
+*.tsbuildinfo
+
+# Vite
+.vite/
+
+# =========================
+# macOS
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+*.swp
+*.swo
+*~
+
+# =========================
+# Environment & Secrets
+# =========================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# =========================
+# Misc
+# =========================
+*.tmp
+*.temp
+.claude/
+
+# =========================
+# Docker
+# =========================
+# docker-compose.override.yml
+
+# =========================
+# Test & Coverage
+# =========================
+coverage/
+*.lcov
+.nyc_output/
