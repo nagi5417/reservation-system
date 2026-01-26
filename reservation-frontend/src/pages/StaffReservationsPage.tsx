@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
   import type { Reservation } from "../types";
   import { formatDateTime } from "../utils/dateUtils";
   import { LoadingSpinner } from "../components/LoadingSpinner";
-  import { Button } from "../components/ui/button";
   import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
   import { Alert, AlertDescription } from "../components/ui/alert";
   import { Input } from "../components/ui/input";
