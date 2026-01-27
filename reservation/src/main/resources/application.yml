@@ -2,6 +2,13 @@ spring:
   application:
     name: reservation
 
+  # MVC設定（404例外を投げるように設定）
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
+
   # データソース設定
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:reservation_db}

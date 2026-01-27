@@ -3,9 +3,12 @@ package com.example.reservation.exception;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.Map;
 import java.time.LocalDateTime;
@@ -166,17 +169,86 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * すべての未処置例外をキャッチする汎用例外ハンドラー。
+     * アクセス拒否例外を処理する（Spring Security）。
+     *
+     * 認証済みユーザーが権限のないリソースにアクセスしようとした場合にスローされる。
+     *
+     * @param ex AccessDeniedException インスタンス
+     * @return エラー情報を含むResponseEntity（ステータス：403）
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDeniedException(
+        AccessDeniedException ex
+    ) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.FORBIDDEN.value());
+        errorResponse.put("error", "Forbidden");
+        errorResponse.put("message", "このリソースへのアクセス権限がありません");
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+
+    /**
+     * 認証例外を処理する（Spring Security）。
+     *
+     * 認証が必要なリソースに未認証でアクセスしようとした場合にスローされる。
+     *
+     * @param ex AuthenticationException インスタンス
+     * @return エラー情報を含むResponseEntity（ステータス：401）
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Map<String, Object>> handleAuthenticationException(
+        AuthenticationException ex
+    ) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.UNAUTHORIZED.value());
+        errorResponse.put("error", "Unauthorized");
+        errorResponse.put("message", "認証が必要です");
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    /**
+     * ハンドラーが見つからない例外を処理する（404）。
+     *
+     * 存在しないエンドポイントにアクセスした場合にスローされる。
+     *
+     * @param ex NoHandlerFoundException インスタンス
+     * @return エラー情報を含むResponseEntity（ステータス：404）
+     */
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNoHandlerFoundException(
+        NoHandlerFoundException ex
+    ) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.NOT_FOUND.value());
+        errorResponse.put("error", "Not Found");
+        errorResponse.put("message", "指定されたエンドポイントが見つかりません: " + ex.getRequestURL());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    /**
+     * すべての未処理例外をキャッチする汎用例外ハンドラー。
      *
      * 上記のどの例外ハンドラーにも該当しない例外をすべてキャッチする。
-     * これにより、予期しないエラーが発生した場合予期しないエラーが発生した場合でもアプリケーションがクラッシュせず、
+     * これにより、予期しないエラーが発生した場合でもアプリケーションがクラッシュせず、
      * 適切なエラーレスポンスを返す。
      *
+     * 注意：Spring Securityの例外や404は上記で個別に処理されるため、
+     * ここでは本当に予期しない例外のみが処理される。
+     *
      * @param ex Exception インスタンス（すべての例外の基底クラス）
-     * @return エラー情報を含むResponseEntity（ステータス：５００）
+     * @return エラー情報を含むResponseEntity（ステータス：500）
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
+        // デバッグ用にログ出力（本番ではログレベルを調整）
+        ex.printStackTrace();
+
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("timestamp", LocalDateTime.now());
         errorResponse.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
