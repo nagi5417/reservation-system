@@ -1,11 +1,10 @@
 import axios from 'axios';
 
-// API base URL: 本番環境では環境変数から取得、ローカル開発ではViteプロキシを使用
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
-
 // Create axios instance with base configuration
+// ローカル開発: Viteプロキシ経由 → http://localhost:8080/api
+// 本番環境: Vercelプロキシ経由 → EC2バックエンド
 const apiClient = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
+  baseURL: '/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
