@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+// API base URL: 本番環境では環境変数から取得、ローカル開発ではViteプロキシを使用
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
 // Create axios instance with base configuration
 const apiClient = axios.create({
-  baseURL: '/api',  // Vite proxy will forward to http://localhost:8080/api
+  baseURL: `${API_BASE_URL}/api`,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
