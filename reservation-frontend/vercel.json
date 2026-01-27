@@ -11,6 +11,10 @@
     {
       "source": "/login/oauth2/:path*",
       "destination": "http://18.183.192.121:8080/login/oauth2/:path*"
+    },
+    {
+      "source": "/((?!api|oauth2|assets|_next).*)",
+      "destination": "/index.html"
     }
   ]
 }
