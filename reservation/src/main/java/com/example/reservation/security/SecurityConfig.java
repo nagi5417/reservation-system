@@ -68,9 +68,9 @@ public class SecurityConfig {
                 // 予約枠一覧・詳細（公開API）
                 .requestMatchers("/api/slots/**").permitAll()
 
-                // メニュー関連
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/menus/**").permitAll()
-                .requestMatchers("/api/menus/**").hasRole("STAFF")
+                // メニュー関連（GETは公開、その他はスタッフのみ）
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/service-menus/**").permitAll()
+                .requestMatchers("/api/service-menus/**").hasRole("STAFF")
 
                 // スタッフ専用API
                 .requestMatchers("/api/staff/**").hasRole("STAFF")
