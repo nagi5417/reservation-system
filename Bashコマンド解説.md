@@ -14,6 +14,8 @@
 6. [データベース操作](#6-データベース操作)
 7. [ビルド・実行](#7-ビルド実行)
 8. [その他の便利なコマンド](#8-その他の便利なコマンド)
+9. [EC2デプロイ](#9-ec2デプロイ)
+10. [Git操作](#10-git操作)
 
 ---
 
@@ -704,6 +706,236 @@ nohup コマンド > log.txt 2>&1 &
 
 # 4. 監視
 tail -f log.txt
+```
+
+---
+
+## 9. EC2デプロイ
+
+### SSH接続
+
+```bash
+ssh -i 秘密鍵ファイル ユーザー名@ホスト
+```
+
+#### 例: EC2インスタンスに接続
+```bash
+ssh -i ~/.ssh/nagi5417-key.pem ec2-user@18.183.192.121
+```
+**意味：**
+- `-i ~/.ssh/nagi5417-key.pem`: 秘密鍵ファイルを指定
+- `ec2-user`: EC2のデフォルトユーザー（Amazon Linux）
+- `18.183.192.121`: EC2のパブリックIPアドレス
+
+### SCP - ファイル転送
+
+```bash
+scp -i 秘密鍵 ローカルファイル ユーザー@ホスト:リモートパス
+```
+
+#### 例: JARファイルをEC2に転送
+```bash
+scp -i ~/.ssh/nagi5417-key.pem ./build/libs/reservation-0.0.1-SNAPSHOT.jar ec2-user@18.183.192.121:~/reservation.jar
+```
+**意味：**
+- ローカルのJARファイルをEC2の`~/reservation.jar`にコピー
+
+#### 例: EC2からローカルにファイルをダウンロード
+```bash
+scp -i ~/.ssh/nagi5417-key.pem ec2-user@18.183.192.121:~/app.log ./local-app.log
+```
+
+### systemd - サービス管理
+
+#### サービスの状態確認
+```bash
+sudo systemctl status reservation
+```
+
+#### サービスの起動
+```bash
+sudo systemctl start reservation
+```
+
+#### サービスの停止
+```bash
+sudo systemctl stop reservation
+```
+
+#### サービスの再起動
+```bash
+sudo systemctl restart reservation
+```
+
+#### 自動起動の有効化
+```bash
+sudo systemctl enable reservation
+```
+
+#### サービスのログ確認
+```bash
+sudo journalctl -u reservation -f
+```
+**意味：**
+- `-u reservation`: reservationサービスのログ
+- `-f`: リアルタイムでログを追跡
+
+### EC2デプロイの一連の流れ
+
+```bash
+# 1. ローカルでJARをビルド
+./gradlew clean bootJar
+
+# 2. JARをEC2に転送
+scp -i ~/.ssh/nagi5417-key.pem ./build/libs/reservation-0.0.1-SNAPSHOT.jar ec2-user@18.183.192.121:~/reservation.jar
+
+# 3. EC2でJARをコピーしてサービス再起動
+ssh -i ~/.ssh/nagi5417-key.pem ec2-user@18.183.192.121 "sudo cp ~/reservation.jar /opt/reservation/app.jar && sudo systemctl restart reservation"
+
+# 4. サービス状態確認
+ssh -i ~/.ssh/nagi5417-key.pem ec2-user@18.183.192.121 "sudo systemctl status reservation"
+
+# 5. APIの動作確認
+curl -s http://18.183.192.121:8080/api/slots
+```
+
+### CORSプリフライト確認
+
+```bash
+curl -s -I -X OPTIONS \
+  -H "Origin: https://your-frontend-domain.com" \
+  -H "Access-Control-Request-Method: GET" \
+  -H "Access-Control-Request-Headers: Content-Type" \
+  http://18.183.192.121:8080/api/slots
+```
+**意味：**
+- `-I`: ヘッダーのみ表示
+- `-X OPTIONS`: OPTIONSメソッド（CORSプリフライト）
+- `Origin`: フロントエンドのドメインを指定
+- レスポンスに`Access-Control-Allow-Origin`が含まれていればCORS設定OK
+
+### HTTPステータスコード確認
+
+```bash
+curl -s -w "\nHTTP Status: %{http_code}\n" http://18.183.192.121:8080/api/slots
+```
+**意味：**
+- `-w "\nHTTP Status: %{http_code}\n"`: レスポンス後にHTTPステータスコードを表示
+
+---
+
+## 10. Git操作
+
+### 基本コマンド
+
+#### 状態確認
+```bash
+git status
+```
+
+#### 変更をステージング
+```bash
+git add ファイル名
+```
+
+#### すべての変更をステージング
+```bash
+git add -A
+```
+
+#### コミット
+```bash
+git commit -m "コミットメッセージ"
+```
+
+#### 複数行のコミットメッセージ（HEREDOC使用）
+```bash
+git commit -m "$(cat <<'EOF'
+feat: 新機能の追加
+
+詳細な説明をここに記載
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+EOF
+)"
+```
+
+#### リモートにプッシュ
+```bash
+git push origin main
+```
+
+### 変更履歴の確認
+
+#### コミット履歴
+```bash
+git log --oneline -10
+```
+**意味：**
+- `--oneline`: 1行で表示
+- `-10`: 最新10件
+
+#### 変更差分の確認
+```bash
+git diff
+```
+
+#### ステージング済みの差分
+```bash
+git diff --staged
+```
+
+### ブランチ操作
+
+#### ブランチ一覧
+```bash
+git branch
+```
+
+#### ブランチ作成・切り替え
+```bash
+git checkout -b 新ブランチ名
+```
+
+#### ブランチ切り替え
+```bash
+git checkout ブランチ名
+```
+
+### GitHub CLI（gh）
+
+#### PRの作成
+```bash
+gh pr create --title "タイトル" --body "説明"
+```
+
+#### PRの一覧
+```bash
+gh pr list
+```
+
+#### Issueの一覧
+```bash
+gh issue list
+```
+
+### 実践的なGit操作フロー
+
+```bash
+# 1. 現在の状態確認
+git status
+
+# 2. 変更をステージング
+git add 変更したファイル
+
+# 3. 差分確認
+git diff --staged
+
+# 4. コミット
+git commit -m "fix: バグ修正の説明"
+
+# 5. プッシュ
+git push origin main
 ```
 
 ---
