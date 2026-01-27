@@ -29,6 +29,9 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
 
+    @org.springframework.beans.factory.annotation.Value("${app.base-url:http://localhost:5173}")
+    private String appBaseUrl;
+
     public SecurityConfig(
         CustomOAuth2UserService customOAuth2UserService
     ) {
@@ -119,7 +122,7 @@ public class SecurityConfig {
             // OAuth2ログイン（Google）
             .oauth2Login(oauth2 -> oauth2
                 .loginPage("/login") // ログインページのURL
-                .defaultSuccessUrl("http://localhost:5173/", true) // 認証成功後のリダイレクト先
+                .defaultSuccessUrl(appBaseUrl + "/", true) // 認証成功後のリダイレクト先
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(customOAuth2UserService) // CustomOAuth2UserServiceを使う
                 )
@@ -162,7 +165,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        // ローカル開発環境とVercel本番環境の両方を許可
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:5173",
+            "https://reservation-system-liart.vercel.app"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
